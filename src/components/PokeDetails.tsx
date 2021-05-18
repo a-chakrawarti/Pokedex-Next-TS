@@ -1,36 +1,30 @@
 const PokeDetails = ({ pokeDetails }) => {
   const { name, abilities, height, weight, moves, front_default } = pokeDetails;
   return (
-    <div className="info-body">
-      <div className="attribute-block">
-        <img src={front_default} alt="pokemon" />
-        <div className="attribute-info">
-          <span className="title-tag">{name}</span>
+    <div>
+      <div>
+        <img src={front_default} alt={name} />
+        <div>
+          <span>{name}</span>
           <span>
-            Height: <span className="attribute-data">{height} cm</span>
+            Height: <span>{height} cm</span>
           </span>
           <span>
-            Weight: <span className="attribute-data">{weight} kg</span>
+            Weight: <span>{weight} kg</span>
           </span>
-          <div className="flex-list-row">
+          <div>
             Abilities:
             {abilities.map((item, index) => (
-              <span className="attribute-data ability-tag" key={index}>
-                {item.ability.name}
-              </span>
+              <span key={index}>{item.ability.name}</span>
             ))}
           </div>
         </div>
       </div>
-      <details className="moves">
-        <summary className="title-tag">Moves ( {moves.length} )</summary>
-        <div className="flex-list-row">
+      <details>
+        <summary>Moves ( {moves.length} )</summary>
+        <div>
           {moves.map((item, index) => {
-            return (
-              <span className="moves-tag" key={index}>
-                {item.move.name}
-              </span>
-            );
+            return <span key={index}>{item.move.name}</span>;
           })}
         </div>
       </details>

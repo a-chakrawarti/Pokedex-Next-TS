@@ -2,6 +2,7 @@ import Pagination from "../components/Pagination";
 import PokeItem from "../components/PokeItem";
 import Link from "next/link";
 import { useState } from "react";
+import { fetchPokemonData } from "../api/fetchPokemonData";
 
 const URL = "https://pokeapi.co/api/v2/pokemon?offset=0&limit=250";
 
@@ -12,32 +13,33 @@ export default function Home({ data }) {
 
   const [limit, setLimit] = useState(10);
 
-  const [pokeList, setPokeList] = useState(results.slice(0, limit));
+  const initialPosts = results.slice(0, limit);
 
-  console.log(pokeList);
+  const [pokeList, setPokeList] = useState(initialPosts);
+
   const gotoNextPage = () => {
-    console.log("next Clicked");
-    setPageNumber((prevPage) => {
-      setPokeList(results.slice(prevPage * limit, (prevPage + 1) * limit));
-      return prevPage + 1;
-    });
+    const offset = pageNumber * limit;
+    setPokeList(results.slice(offset, (pageNumber + 1) * limit));
+    setPageNumber((prevState) => prevState + 1);
   };
 
   const gotoPreviousPage = () => {
-    console.log("Prev Clicked");
-    if (pageNumber === 1 || pageNumber < 0) {
+    if (pageNumber !== 1) {
+      const offset = (pageNumber - 2) * limit;
+      setPokeList(results.slice(offset, (pageNumber - 1) * limit));
+      return setPageNumber((prevState) => prevState - 1);
     }
-    setPageNumber((prevPage) => {
-      setPokeList(results.slice(prevPage * limit, (prevPage - 1) * limit));
-      return prevPage - 1;
-    });
+    return setPokeList(initialPosts);
   };
+
   return (
     <div>
-      {pokeList.map((item, index) => {
+      Page: {pageNumber}
+      <hr />
+      {pokeList.map((item) => {
         const data = {
           name: item.name,
-          id: index,
+          id: item.url.split("/").slice(-2, -1),
         };
         return (
           <Link key={item.name} href={`/pokemon/${item.name}`}>
@@ -56,8 +58,7 @@ export default function Home({ data }) {
 }
 
 export async function getStaticProps() {
-  const res = await fetch(URL);
-  const data = await res.json();
+  const data = await fetchPokemonData();
 
   return {
     props: {
