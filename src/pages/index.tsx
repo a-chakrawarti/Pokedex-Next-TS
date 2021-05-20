@@ -1,29 +1,46 @@
 import Pagination from "../components/Pagination";
 import PokeItem from "../components/PokeItem";
+import Container from "@material-ui/core/Container";
 import Link from "next/link";
 import { useState } from "react";
-import { fetchPokemonData } from "../api/fetchPokemonData";
+import { IResults, IPokeList, fetchPokemonData } from "../lib/api";
+import { GetStaticProps } from "next";
+import { makeStyles } from "@material-ui/core/styles";
 
-const URL = "https://pokeapi.co/api/v2/pokemon?offset=0&limit=250";
+const useStyles = makeStyles({
+  listContainer: {
+    display: "grid",
+    alignItems: "center",
+  },
 
-export default function Home({ data }) {
+  bodyHeight: {
+    minHeight: "calc(100vh - 7rem)",
+  },
+});
+
+interface IHomeProps {
+  data: IPokeList;
+}
+
+export default function Home({ data }: IHomeProps) {
   const { results } = data;
-
-  const [pageNumber, setPageNumber] = useState(1);
-
-  const [limit, setLimit] = useState(10);
-
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
   const initialPosts = results.slice(0, limit);
+  const [pokeList, setPokeList] = useState<IResults[]>(initialPosts);
+  const [isButtonDisabled, setIsButtonDisabled] = useState<boolean>(true);
 
-  const [pokeList, setPokeList] = useState(initialPosts);
-
-  const gotoNextPage = () => {
+  const gotoNextPage = (): void => {
     const offset = pageNumber * limit;
     setPokeList(results.slice(offset, (pageNumber + 1) * limit));
     setPageNumber((prevState) => prevState + 1);
+    setIsButtonDisabled(false);
   };
 
-  const gotoPreviousPage = () => {
+  const gotoPreviousPage = (): void => {
+    if (pageNumber === 2) {
+      setIsButtonDisabled(true);
+    }
     if (pageNumber !== 1) {
       const offset = (pageNumber - 2) * limit;
       setPokeList(results.slice(offset, (pageNumber - 1) * limit));
@@ -32,15 +49,18 @@ export default function Home({ data }) {
     return setPokeList(initialPosts);
   };
 
+  const classes = useStyles();
+
   return (
-    <div>
-      Page: {pageNumber}
-      <hr />
+    <Container
+      className={`${classes.listContainer} ${classes.bodyHeight}`}
+      maxWidth="sm">
       {pokeList.map((item) => {
         const data = {
           name: item.name,
-          id: item.url.split("/").slice(-2, -1),
+          id: item.url.split("/").slice(-2, -1).toString(),
         };
+
         return (
           <Link key={item.name} href={`/pokemon/${item.name}`}>
             <a>
@@ -52,12 +72,13 @@ export default function Home({ data }) {
       <Pagination
         gotoNextPage={gotoNextPage}
         gotoPreviousPage={gotoPreviousPage}
+        isButtonDisabled={isButtonDisabled}
       />
-    </div>
+    </Container>
   );
 }
 
-export async function getStaticProps() {
+export const getStaticProps: GetStaticProps = async () => {
   const data = await fetchPokemonData();
 
   return {
@@ -65,4 +86,4 @@ export async function getStaticProps() {
       data,
     },
   };
-}
+};
